@@ -1,0 +1,6 @@
+ID;name;country;industry;riskRating;riskCriticality;paymentTerms;onTimeDeliveryPct;spendAmount;spendCurrency
+10000000-0000-0000-0000-000000000001;Acme Industrial GmbH;DE;Manufacturing;2;3;NET30;94.50;485000.00;EUR
+10000000-0000-0000-0000-000000000002;Toranaga Precision Co;JP;Electronics;1;3;NET45;97.20;620000.00;EUR
+10000000-0000-0000-0000-000000000003;Veldt Metalworks Ltd;ZA;Raw Materials;4;2;NET15;81.30;215000.00;EUR
+10000000-0000-0000-0000-000000000004;Bayou Logistics Inc;US;Logistics;3;2;NET30;88.70;310000.00;EUR
+10000000-0000-0000-0000-000000000005;Skogheim Tooling AS;NO;Tools;5;1;COD;65.40;95000.00;EUR

@@ -1,0 +1,14 @@
+{
+  "name": "purchaseorders",
+  "version": "1.0.0",
+  "description": "Purchase Orders Fiori Elements application",
+  "private": true,
+  "scripts": {
+    "start": "fiori run --open \"index.html?sap-ui-xx-viewCache=false\"",
+    "start-local": "fiori run --config ./ui5-local.yaml --open \"index.html?sap-ui-xx-viewCache=false\""
+  },
+  "devDependencies": {
+    "@sap/ux-ui5-tooling": "^1",
+    "@ui5/cli": "^3"
+  }
+}

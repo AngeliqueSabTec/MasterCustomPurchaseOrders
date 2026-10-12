@@ -1,0 +1,49 @@
+<!--
+======================================================================
+DEMO 4 — Custom section: Spend Analytics
+======================================================================
+This fragment is slotted into the Purchase Order Object Page as a
+new section, configured in manifest.json under:
+
+    routing.targets.PurchaseOrdersObjectPage.options.settings.
+    content.body.sections.SpendAnalytics
+
+What it renders:
+  - macros:MicroChart bound to UI.DataPoint#SpendTrend, showing the
+    spend trend line for this purchase order.
+  - macros:Form bound to UI.FieldGroup#VendorSummary, showing key
+    supplier attributes alongside the chart.
+
+What we are NOT writing:
+  - Column definitions, field labels, criticality logic, responsive
+    sizing, theme adaptation, accessibility roles. Every one of those
+    is owned by the building block. We are composing layout only.
+======================================================================
+-->
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:macros="sap.fe.macros">
+
+    <VBox class="sapUiSmallMargin">
+        <HBox alignItems="Start" justifyContent="SpaceBetween" wrap="Wrap">
+
+            <!-- Spend trend mini-chart -->
+            <VBox class="sapUiSmallMarginEnd" width="320px">
+                <Title text="Spend Trend" level="H3" class="sapUiSmallMarginBottom"/>
+                <macros:MicroChart
+                    id="mcSpendTrend"
+                    metaPath="@com.sap.vocabularies.UI.v1.DataPoint#SpendTrend"/>
+            </VBox>
+
+            <!-- Vendor summary form -->
+            <VBox class="sapUiSmallMarginEnd" width="480px">
+                <macros:Form
+                    id="frmVendorSummary"
+                    metaPath="@com.sap.vocabularies.UI.v1.FieldGroup#VendorSummary"/>
+            </VBox>
+
+        </HBox>
+    </VBox>
+
+</core:FragmentDefinition>

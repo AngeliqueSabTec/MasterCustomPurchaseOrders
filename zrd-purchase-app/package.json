@@ -1,0 +1,30 @@
+{
+  "name": "zrd-purchase-app",
+  "version": "1.0.0",
+  "description": "Mastering Custom SAP Fiori Elements - Live Session Demo Bundle (Purchasing Domain)",
+  "private": true,
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@sap/cds": "^7",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^1",
+    "@sap/cds-dk": "^7"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch",
+    "watch-purchaseorders": "cds watch --open purchaseorders/webapp/index.html?sap-ui-xx-viewCache=false"
+  },
+  "cds": {
+    "requires": {
+      "db": {
+        "kind": "sqlite",
+        "credentials": {
+          "url": ":memory:"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "_version": "1.65.0",
+  "sap.app": {
+    "id": "zrd.fiori.purchaseorders",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": { "version": "1.0.0" },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.13.0",
+      "toolsId": "zrd-purchase-app"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/purchase/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "PurchaseOrders-display": {
+          "semanticObject": "PurchaseOrders",
+          "action": "display",
+          "title": "{{appTitle}}",
+          "signature": { "parameters": {}, "additionalParameters": "allowed" }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": { "icon": "sap-icon://cart" },
+    "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.124.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {},
+        "sap.fe.macros": {}
+      }
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": { "bundleName": "zrd.fiori.purchaseorders.i18n.i18n" }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "synchronizationMode": "None",
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      }
+    },
+    "contentDensities": { "compact": true, "cozy": true },
+    "resources": { "css": [] },
+    "routing": {
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "PurchaseOrdersList",
+          "target": "PurchaseOrdersList"
+        },
+        {
+          "pattern": "PurchaseOrders({key}):?query:",
+          "name": "PurchaseOrdersObjectPage",
+          "target": "PurchaseOrdersObjectPage"
+        },
+        {
+          "pattern": "supplier-workbench/{supplierId}:?query:",
+          "name": "SupplierWorkbench",
+          "target": "SupplierWorkbench"
+        }
+      ],
+      "targets": {
+        "PurchaseOrdersList": {
+          "type": "Component",
+          "id": "PurchaseOrdersList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/PurchaseOrders",
+              "variantManagement": "Page",
+              "navigation": {
+                "PurchaseOrders": {
+                  "detail": { "route": "PurchaseOrdersObjectPage" }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable",
+                    "personalization": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PurchaseOrdersObjectPage": {
+          "type": "Component",
+          "id": "PurchaseOrdersObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "contextPath": "/PurchaseOrders",
+              "editableHeaderContent": false,
+              "content": {
+                "body": {
+                  "sections": {
+                    "SpendAnalytics": {
+                      "title": "Spend Analytics",
+                      "template": "zrd.fiori.purchaseorders.ext.view.SpendAnalytics",
+                      "position": {
+                        "placement": "After",
+                        "anchor": "GeneralInformationFacet"
+                      }
+                    }
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.Identification": {
+                  "actions": {
+                    "MarkReviewed": {
+                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.onMarkAsReviewed",
+                      "visible": true,
+                      "enabled": "{= ${Status} !== 'Reviewed' && ${Status} !== 'Draft' }",
+                      "text": "Mark as Reviewed",
+                      "requiresSelection": false
+                    },
+                    "OpenSupplierWorkbench": {
+                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.onOpenSupplierWorkbench",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Open Supplier Workbench",
+                      "requiresSelection": false
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "SupplierWorkbench": {
+          "type": "Component",
+          "id": "SupplierWorkbench",
+          "name": "sap.fe.core.fpm",
+          "options": {
+            "settings": {
+              "viewName": "zrd.fiori.purchaseorders.ext.view.SupplierWorkbench",
+              "contextPath": "/Suppliers"
+            }
+          }
+        }
+      }
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt"
+          }
+        }
+      }
+    }
+  }
+}
