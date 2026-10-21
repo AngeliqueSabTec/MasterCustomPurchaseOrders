@@ -10,13 +10,20 @@
   },
   "devDependencies": {
     "@cap-js/sqlite": "^2",
-    "@sap/cds-dk": "^9"
+    "@sap/cds-dk": "^9",
+    "cds-plugin-ui5": "^0.17.0"
   },
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
-    "watch-purchaseorders": "cds watch --open purchaseorders/webapp/index.html?sap-ui-xx-viewCache=false"
+    "watch-purchaseorders": "cds watch --open zrd.fiori.purchaseorders/index.html?sap-ui-xx-viewCache=false"
   },
+  "workspaces": [
+    "app/*"
+  ],
+  "sapux": [
+    "app/purchaseorders"
+  ],
   "cds": {
     "requires": {
       "db": {
