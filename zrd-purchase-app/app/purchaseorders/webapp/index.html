@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <title>Purchase Orders</title>
     <style>
-        html, body, #content {
+        html, body, body > div, #container, #container-uiarea {
             height: 100%;
         }
     </style>
@@ -16,7 +16,9 @@
         data-sap-ui-resourceroots='{ "zrd.fiori.purchaseorders": "./" }'
         data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
         data-sap-ui-async="true"
-        data-sap-ui-compatVersion="edge"></script>
+        data-sap-ui-compatVersion="edge"
+        data-sap-ui-xx-componentPreload="off"
+        data-sap-ui-frame-options="trusted"></script>
 </head>
 <body class="sapUiBody" id="content">
     <div

@@ -69,6 +69,17 @@
     "contentDensities": { "compact": true, "cozy": true },
     "resources": { "css": [] },
     "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "type": "View",
+        "viewType": "XML",
+        "path": "sap.fe.core.rootView",
+        "viewName": "NavContainer",
+        "controlAggregation": "pages",
+        "controlId": "appContent",
+        "bypassed": { "target": "notFound" },
+        "async": true
+      },
       "routes": [
         {
           "pattern": ":?query:",
@@ -164,6 +175,11 @@
               "contextPath": "/Suppliers"
             }
           }
+        },
+        "notFound": {
+          "type": "Component",
+          "id": "notFound",
+          "name": "sap.fe.core.rootView.NotFound"
         }
       }
     },

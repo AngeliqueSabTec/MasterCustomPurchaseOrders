@@ -19,3 +19,8 @@ Thumbs.db
 # Env/secrets
 .env
 default-env.json
+
+# Session materials not needed to run the demo (transcript/slide-guide drafts)
+docs/Mastering-Custom-Fiori-Elements-Purchasing-Demo-Fix.md
+docs/Mastering_Custom_SAP_Fiori_Elements_Session_Transcript_Ext.docx
+docs/Mastering_Custom_SAP_Fiori_Elements_Slide_Content_Guide.md
