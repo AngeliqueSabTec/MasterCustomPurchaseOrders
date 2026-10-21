@@ -1,6 +1,17 @@
 namespace zrd.purchasing;
 
-using { cuid, managed } from '@sap/cds/common';
+aspect cuid {
+  key ID : UUID;
+}
+
+aspect managed {
+  createdAt  : Timestamp @cds.on.insert: $now;
+  createdBy  : String(255) @cds.on.insert: $user;
+  modifiedAt : Timestamp @cds.on.insert: $now @cds.on.update: $now;
+  modifiedBy : String(255) @cds.on.insert: $user @cds.on.update: $user;
+}
+
+
 
 /**
  * Suppliers — the vendor master for the demo. Includes risk rating which

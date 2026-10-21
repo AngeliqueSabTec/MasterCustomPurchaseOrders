@@ -42,7 +42,7 @@
   "sap.ui5": {
     "flexEnabled": true,
     "dependencies": {
-      "minUI5Version": "1.124.0",
+      "minUI5Version": "1.149.1",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
@@ -69,17 +69,7 @@
     "contentDensities": { "compact": true, "cozy": true },
     "resources": { "css": [] },
     "routing": {
-      "config": {
-        "routerClass": "sap.m.routing.Router",
-        "type": "View",
-        "viewType": "XML",
-        "path": "sap.fe.core.rootView",
-        "viewName": "NavContainer",
-        "controlAggregation": "pages",
-        "controlId": "appContent",
-        "bypassed": { "target": "notFound" },
-        "async": true
-      },
+      "config": {},
       "routes": [
         {
           "pattern": ":?query:",
@@ -134,14 +124,14 @@
                 "header": {
                   "actions": {
                     "MarkReviewed": {
-                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.extension.onMarkAsReviewed",
+                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.onMarkAsReviewed",
                       "visible": true,
                       "enabled": "{= %{status} === 'Submitted' }",
                       "text": "Mark as Reviewed",
                       "requiresSelection": false
                     },
                     "OpenSupplierWorkbench": {
-                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.extension.onOpenSupplierWorkbench",
+                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.onOpenSupplierWorkbench",
                       "visible": true,
                       "enabled": true,
                       "text": "Open Supplier Workbench",
@@ -175,11 +165,6 @@
               "contextPath": "/Suppliers"
             }
           }
-        },
-        "notFound": {
-          "type": "Component",
-          "id": "notFound",
-          "name": "sap.fe.core.rootView.NotFound"
         }
       }
     },
