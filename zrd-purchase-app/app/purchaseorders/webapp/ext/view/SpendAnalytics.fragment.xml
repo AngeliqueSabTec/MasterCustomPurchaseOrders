@@ -9,10 +9,11 @@ new section, configured in manifest.json under:
     content.body.sections.SpendAnalytics
 
 What it renders:
-  - macros:MicroChart bound to UI.Chart#SpendTrendDetail, showing the
-    spend trend line for this purchase order's supplier. A separate
-    qualifier from the header facet's #SpendTrend chart — same data,
-    distinct metaPath, so the two controls don't collide on one ID.
+  - macros:Chart bound to UI.Chart#SpendTrendDetail, showing the spend
+    trend line for this purchase order's supplier as a full chart (the
+    header facet already shows a compact macros:MicroChart version of
+    the same data under #SpendTrend — distinct qualifier so the two
+    controls don't collide on one ID).
   - macros:Form bound to UI.FieldGroup#VendorSummary, showing key
     supplier attributes alongside the chart.
 
@@ -27,24 +28,26 @@ What we are NOT writing:
     xmlns:core="sap.ui.core"
     xmlns:macros="sap.fe.macros">
 
-    <VBox class="sapUiSmallMargin">
-        <HBox alignItems="Start" justifyContent="SpaceBetween" wrap="Wrap">
+    <VBox id="idSpendAnalyticsVBox" class="sapUiSmallMargin">
+        <HBox id="idSpendAnalyticsHBox" alignItems="Start" justifyContent="SpaceBetween" wrap="Wrap">
 
-            <!-- Spend trend mini-chart. Distinct qualifier from the
-                 header facet's #SpendTrend chart (same data) — reusing
-                 one metaPath in two controls on the same page renders
-                 duplicate control IDs. -->
-            <VBox class="sapUiSmallMarginEnd" width="320px">
-                <Title text="Spend Trend" level="H3" class="sapUiSmallMarginBottom"/>
-                <macros:MicroChart
-                    id="mcSpendTrend"
-                    metaPath="@com.sap.vocabularies.UI.v1.Chart#SpendTrendDetail"/>
+            <!-- Full spend trend chart. Distinct qualifier from the
+                 header facet's #SpendTrend mini-chart (same data) —
+                 reusing one metaPath in two controls on the same page
+                 renders duplicate control IDs. -->
+            <VBox id="idSpendTrendVBox" class="sapUiSmallMarginEnd" width="55%">
+                <!-- No manual Title here: macros:Chart already renders
+                     its own caption from UI.Chart.Title — adding one here
+                     duplicated the "Spend Trend" heading. -->
+                <macros:Chart
+                    id="idSpendTrendChart"
+                    metaPath="supplierHistory/@com.sap.vocabularies.UI.v1.Chart#SpendTrendDetail"/>
             </VBox>
 
             <!-- Vendor summary form -->
-            <VBox class="sapUiSmallMarginEnd" width="480px">
+            <VBox id="idVendorSummaryVBox" class="sapUiSmallMarginEnd" width="480px">
                 <macros:Form
-                    id="frmVendorSummary"
+                    id="idVendorSummaryForm"
                     metaPath="@com.sap.vocabularies.UI.v1.FieldGroup#VendorSummary"/>
             </VBox>
 

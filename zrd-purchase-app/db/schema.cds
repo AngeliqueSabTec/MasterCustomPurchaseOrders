@@ -101,7 +101,11 @@ entity SupplierSpendByCategory : cuid {
  */
 entity SupplierSpendHistory : cuid {
   supplier : Association to Suppliers;
-  period   : String(7);   // 'YYYY-MM'
+  // Date, not String('YYYY-MM') — LineMicroChart needs an actual
+  // orderable/numeric dimension type to place points along the x-axis;
+  // a plain string (even with @Common.IsCalendarYearMonth) left every
+  // point's x position at the same computed fallback value.
+  period   : Date;
   amount   : Decimal(15,2);
   currency : String(3);
 }

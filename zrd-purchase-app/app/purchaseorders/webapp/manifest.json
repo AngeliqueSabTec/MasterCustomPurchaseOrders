@@ -47,7 +47,8 @@
         "sap.m": {},
         "sap.ui.core": {},
         "sap.fe.templates": {},
-        "sap.fe.macros": {}
+        "sap.fe.macros": {},
+        "sap.suite.ui.microchart": {}
       }
     },
     "models": {
@@ -164,15 +165,6 @@
               "viewName": "zrd.fiori.purchaseorders.ext.view.SupplierWorkbench",
               "contextPath": "/Suppliers"
             }
-          }
-        }
-      }
-    },
-    "extends": {
-      "extensions": {
-        "sap.ui.controllerExtensions": {
-          "sap.fe.templates.ObjectPage.ObjectPageController": {
-            "controllerName": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt"
           }
         }
       }

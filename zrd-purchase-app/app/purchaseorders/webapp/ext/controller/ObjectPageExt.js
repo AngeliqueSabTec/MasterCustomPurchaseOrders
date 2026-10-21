@@ -1,12 +1,25 @@
 // =====================================================================
-// ObjectPageExt — Controller extension for the Purchase Order Object Page
+// ObjectPageExt — custom action handlers for the Purchase Order Object Page
 // =====================================================================
-// Two custom handlers live here:
+// Referenced by manifest.json's content.header.actions[...].press as
+// "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.<method>".
+//
+// This is a PLAIN module, not a ControllerExtension. sap.fe.core's
+// FPMHelper is what actually dispatches a "press" string like this one:
+// it loads the module with a bare sap.ui.require (dotted path -> slashes
+// -> ".js", no ".controller" suffix — different from how a real
+// sap.ui.core.mvc.Controller/ControllerExtension module is resolved),
+// then calls `loadedModule[method].bind(extensionAPI)(oBindingContext,
+// aSelectedContexts, listBinding)`. So:
+//   - `this` is the page's ExtensionAPI, not a ControllerExtension — there
+//     is no `this.base`. editFlow/routing come from
+//     this.getEditFlow()/this.getRouting() instead.
+//   - the current binding context arrives as the first parameter; no
+//     need to look it up via extensionAPI.
 //
 //   onMarkAsReviewed       — DEMO 3 — invoked by the "Mark as Reviewed"
-//                            custom action defined in manifest.json.
-//                            Confirms with the user, calls the bound
-//                            CAP action, refreshes, shows feedback.
+//                            custom action. Confirms with the user,
+//                            calls the bound CAP action, shows feedback.
 //
 //   onOpenSupplierWorkbench — DEMO 5 — invoked by the "Open Supplier
 //                            Workbench" custom action. Reads the
@@ -14,40 +27,30 @@
 //                            context and navigates to the FPM custom
 //                            page.
 //
-// Notes for trainees:
-//   - this.base.getExtensionAPI() reads floorplan state (binding
-//     context, etc). this.base.editFlow and this.base.routing are
-//     separate built-in controller extensions FE mixes into every page
-//     controller — that's where invokeAction/navigateToRoute live.
-//     extensionAPI itself has neither method.
-//   - We never reach into the DOM. The framework owns rendering.
-//   - Business logic stays on the server (the CAP markAsReviewed
-//     action). The controller's job is UX — confirmation, feedback.
+// Business logic stays on the server (the CAP markAsReviewed action).
+// This module's job is UX — confirmation, feedback, navigation.
 // =====================================================================
 
 sap.ui.define([
-    "sap/ui/core/mvc/ControllerExtension",
     "sap/m/MessageBox",
     "sap/m/MessageToast"
-], function (ControllerExtension, MessageBox, MessageToast) {
+], function (MessageBox, MessageToast) {
     "use strict";
 
-    return ControllerExtension.extend("zrd.fiori.purchaseorders.ext.controller.ObjectPageExt", {
+    return {
 
         // -------------------------------------------------------------
         // DEMO 3 — custom action handler
         // -------------------------------------------------------------
-        onMarkAsReviewed: function () {
-            const oExtAPI  = this.base.getExtensionAPI();
-            const oContext = oExtAPI.getBindingContext();
-            const that     = this;
+        onMarkAsReviewed: function (oBindingContext) {
+            const oExtensionAPI = this;
 
-            if (!oContext) {
+            if (!oBindingContext) {
                 MessageBox.error("No purchase order context available.");
                 return;
             }
 
-            const sOrderNo = oContext.getProperty("orderNo");
+            const sOrderNo = oBindingContext.getProperty("orderNo");
 
             MessageBox.confirm(
                 "Mark PO " + sOrderNo + " as Reviewed?",
@@ -58,13 +61,9 @@ sap.ui.define([
                             return;
                         }
 
-                        // extensionAPI has no invokeAction method — bound/unbound
-                        // actions are invoked through the editFlow controller
-                        // extension, which FE mixes into every page controller
-                        // as this.base.editFlow.
-                        that.base.editFlow.invokeAction(
+                        oExtensionAPI.getEditFlow().invokeAction(
                             "PurchaseService.markAsReviewed",
-                            { contexts: oContext }
+                            { contexts: oBindingContext }
                         ).then(function () {
                             MessageToast.show("PO " + sOrderNo + " marked as Reviewed");
                         }).catch(function (oErr) {
@@ -79,16 +78,21 @@ sap.ui.define([
         // -------------------------------------------------------------
         // DEMO 5 — navigate to the Supplier Workbench custom page
         // -------------------------------------------------------------
-        onOpenSupplierWorkbench: function () {
-            const oExtAPI  = this.base.getExtensionAPI();
-            const oContext = oExtAPI.getBindingContext();
-
-            if (!oContext) {
+        onOpenSupplierWorkbench: function (oBindingContext) {
+            if (!oBindingContext) {
                 MessageBox.error("No purchase order context available.");
                 return;
             }
 
-            const sSupplierId = oContext.getProperty("supplier_ID");
+            // Read through the "supplier" navigation property, not the raw
+            // supplier_ID scalar: the object page never displays supplier_ID
+            // directly (only supplier.name/.country/... via the expanded
+            // navigation), so OData V4's autoExpandSelect never fetches
+            // that scalar and getProperty("supplier_ID") comes back
+            // undefined even though every order genuinely has a supplier.
+            // An expanded navigation entity's key is always included,
+            // regardless of $select, so supplier/ID is reliably present.
+            const sSupplierId = oBindingContext.getProperty("supplier/ID");
             if (!sSupplierId) {
                 MessageBox.warning("This purchase order has no supplier assigned.");
                 return;
@@ -97,14 +101,11 @@ sap.ui.define([
             // Navigate to the FPM custom page registered in manifest.json
             // under routing.targets.SupplierWorkbench. The route pattern
             // is "Suppliers({key})" so FE can bind the page's context
-            // straight from the URL. extensionAPI has no getRouting()
-            // method — routing is its own built-in controller extension,
-            // mixed into the page controller as this.base.routing, same
-            // pattern as this.base.editFlow.
-            this.base.routing.navigateToRoute("SupplierWorkbench", {
+            // straight from the URL.
+            this.getRouting().navigateToRoute("SupplierWorkbench", {
                 key: sSupplierId
             });
         }
 
-    });
+    };
 });

@@ -76,45 +76,28 @@ annotate PurchaseService.PurchaseOrders with @(
     ]
   },
 
-  // === Demo 2: UI.Chart (#Line) for the Object Page header mini-chart ===
+  // === Demo 2: UI.Chart (#Line) for the Object Page header mini-chart,
+  // and Demo 4's #SpendTrendDetail for the SpendAnalytics section ===
   // A UI.DataPoint cannot use Visualization: #LineChart (not a valid
   // value) — a trend line needs a UI.Chart over a to-many time series.
-  // Measures/Dimensions use the single-hop supplierHistory association
-  // declared directly on PurchaseOrders — not supplier.spendHistory
-  // (two hops), which makes CDS auto-expose a second projection of the
-  // target entity and deploy its CSV data twice.
-  UI.Chart #SpendTrend: {
-    ChartType : #Line,
-    Title     : 'Spend Trend',
-    Measures  : [ supplierHistory.amount ],
-    MeasureAttributes: [
-      { $Type: 'UI.ChartMeasureAttributeType', Measure: supplierHistory.amount, Role: #Axis1 }
-    ],
-    Dimensions: [ supplierHistory.period ],
-    DimensionAttributes: [
-      { $Type: 'UI.ChartDimensionAttributeType', Dimension: supplierHistory.period, Role: #Category }
-    ]
-  },
-
-  // === Demo 4: Same data, distinct qualifier. Reusing #SpendTrend's
-  // metaPath in the SpendAnalytics section as well as the header facet
-  // produces two controls with the same ID on the same page. ===
-  UI.Chart #SpendTrendDetail: {
-    ChartType : #Line,
-    Title     : 'Spend Trend',
-    Measures  : [ supplierHistory.amount ],
-    MeasureAttributes: [
-      { $Type: 'UI.ChartMeasureAttributeType', Measure: supplierHistory.amount, Role: #Axis1 }
-    ],
-    Dimensions: [ supplierHistory.period ],
-    DimensionAttributes: [
-      { $Type: 'UI.ChartDimensionAttributeType', Dimension: supplierHistory.period, Role: #Category }
-    ]
-  },
+  //
+  // Both qualifiers are declared below on SupplierSpendHistory itself
+  // (the supplierHistory association's target), not here on
+  // PurchaseOrders with dotted Measures/Dimensions. The macros:Chart
+  // building block (used by SupplierWorkbench's #SpendByCategory)
+  // tolerates navigation-qualified Measures from the root entity, but
+  // macros:MicroChart does not: it resolves Measures/Dimensions against
+  // whatever entity type contextPath/metaPath currently points at, so a
+  // dotted path like `supplierHistory.amount` doesn't resolve to a
+  // property and the building block silently renders an invisible
+  // placeholder (no console error) instead of a chart. Same restriction
+  // applies to a UI.Chart consumed via UI.HeaderFacets — its Target
+  // must include the navigation segment for the same reason. See
+  // `annotate PurchaseService.SupplierSpendHistory` below.
 
   // === Demo 2: HeaderFacets — adds the SpendTrend mini-chart to header ===
   UI.HeaderFacets: [
-    { $Type: 'UI.ReferenceFacet', Target: '@UI.Chart#SpendTrend', Label: 'Spend Trend' }
+    { $Type: 'UI.ReferenceFacet', Target: 'supplierHistory/@UI.Chart#SpendTrend', Label: 'Spend Trend' }
   ],
 
   // === Demo 1: Object Page body facets ===
@@ -207,22 +190,16 @@ annotate PurchaseService.Suppliers with @(
   },
 
   // === Demo 5: Chart annotation for the SpendByCategory chart ===
-  UI.Chart #SpendByCategory: {
-    Title              : 'Spend by Category',
-    ChartType          : #Column,
-    Measures           : [ spendByCategory.amount ],
-    MeasureAttributes  : [
-      { $Type: 'UI.ChartMeasureAttributeType',
-        Measure: spendByCategory.amount,
-        Role: #Axis1 }
-    ],
-    Dimensions         : [ spendByCategory.category ],
-    DimensionAttributes: [
-      { $Type: 'UI.ChartDimensionAttributeType',
-        Dimension: spendByCategory.category,
-        Role: #Category }
-    ]
-  }
+  // Was declared here with dotted Measures/Dimensions through the
+  // spendByCategory association (Measures: [spendByCategory.amount]) —
+  // compiled and rendered fine, but CAP's SQLite $apply engine rejects
+  // the resulting query at runtime: "$expand is not yet supported.
+  // Dimension: spendByCategory/category from an association cannot be
+  // used" — a hard error that took the whole Supplier Workbench page
+  // down with it (Supplier Details form and Open POs table too, not
+  // just the chart). Moved to PurchaseService.SupplierSpendByCategory
+  // below with plain properties, same fix as UI.Chart #SpendTrend /
+  // #SpendTrendDetail on SupplierSpendHistory.
 );
 
 annotate PurchaseService.Suppliers with {
@@ -243,10 +220,107 @@ annotate PurchaseService.SupplierSpendByCategory with {
   amount   @title: 'Amount' @Analytics.Measure: true @Aggregation.default: #SUM;
 };
 
+// Same requirement as SupplierSpendHistory below: macros:Chart (used by
+// SupplierWorkbench.view.xml's #SpendByCategory) hard-errors the whole
+// page without this — "ApplySupported is not added to the annotations".
+// Also publishes Org.OData.Aggregation.V1.CustomAggregate for amount
+// (@Aggregation.default alone doesn't), and the UI.Chart itself — moved
+// here from Suppliers with plain Measures/Dimensions; see the comment
+// on Suppliers.UI.Chart's old location for why.
+annotate PurchaseService.SupplierSpendByCategory with @(
+  Aggregation.CustomAggregate #amount: 'Edm.Decimal',
+  Aggregation.ApplySupported: {
+    Transformations        : [ 'aggregate', 'groupby', 'filter' ],
+    Rollup                 : #None,
+    PropertyRestrictions   : true,
+    GroupableProperties    : [ category ],
+    AggregatableProperties : [ { Property: amount } ]
+  },
+  UI.Chart #SpendByCategory: {
+    Title              : 'Spend by Category',
+    ChartType          : #Column,
+    Measures           : [ amount ],
+    MeasureAttributes  : [
+      { $Type: 'UI.ChartMeasureAttributeType', Measure: amount, Role: #Axis1 }
+    ],
+    Dimensions         : [ category ],
+    DimensionAttributes: [
+      { $Type: 'UI.ChartDimensionAttributeType', Dimension: category, Role: #Category }
+    ]
+  }
+);
+
 annotate PurchaseService.SupplierSpendHistory with {
   period @title: 'Period';
   amount @title: 'Amount' @Analytics.Measure: true @Aggregation.default: #SUM;
 };
+
+// CAP doesn't publish Org.OData.Aggregation.V1.CustomAggregate from
+// @Aggregation.default alone — without it, a client's bare
+// `aggregate(amount)` (no explicit "with sum as") 400s with "Result type
+// for custom aggregation of property not found". Declared explicitly so
+// that shorthand resolves instead of silently failing.
+annotate PurchaseService.SupplierSpendHistory with @(
+  Aggregation.CustomAggregate #amount: 'Edm.Decimal'
+);
+
+// macros:Chart (used below for #SpendTrendDetail) refuses to render at
+// all — a hard error, not a silent fallback like MicroChart — unless
+// the entity set declares Aggregation.ApplySupported. Without this, the
+// whole Object Page fails to load: "Error creating content for building
+// block sap.fe.macros.Chart ... ApplySupported is not added to the
+// annotations".
+annotate PurchaseService.SupplierSpendHistory with @(
+  Aggregation.ApplySupported: {
+    Transformations        : [ 'aggregate', 'groupby', 'filter' ],
+    Rollup                 : #None,
+    PropertyRestrictions   : true,
+    GroupableProperties    : [ period ],
+    AggregatableProperties : [ { Property: amount } ]
+  }
+);
+
+// Demo 2 header mini-chart (#SpendTrend) and Demo 4 section chart
+// (#SpendTrendDetail, distinct qualifier — reusing one qualifier across
+// both controls on the same page renders duplicate control IDs).
+// Declared here, on the association target, with plain Measures/
+// Dimensions — see the comment on PurchaseOrders.UI.HeaderFacets for why.
+annotate PurchaseService.SupplierSpendHistory with @(
+  // macros:MicroChart (unlike macros:Chart) resolves each measure's
+  // DataPoint to decide how/whether to render it — a MeasureAttributes
+  // entry with only a Role and no DataPoint reference leaves the
+  // building block nothing to bind the value to, and it renders an
+  // invisible placeholder instead of the chart, with no console error.
+  UI.DataPoint #SpendTrendAmount: {
+    Value: amount
+  },
+  UI.Chart #SpendTrend: {
+    ChartType : #Line,
+    Title     : 'Spend Trend',
+    Measures  : [ amount ],
+    MeasureAttributes: [
+      { $Type: 'UI.ChartMeasureAttributeType', Measure: amount, Role: #Axis1,
+        DataPoint: '@UI.DataPoint#SpendTrendAmount' }
+    ],
+    Dimensions: [ period ],
+    DimensionAttributes: [
+      { $Type: 'UI.ChartDimensionAttributeType', Dimension: period, Role: #Category }
+    ]
+  },
+  UI.Chart #SpendTrendDetail: {
+    ChartType : #Line,
+    Title     : 'Spend Trend',
+    Measures  : [ amount ],
+    MeasureAttributes: [
+      { $Type: 'UI.ChartMeasureAttributeType', Measure: amount, Role: #Axis1,
+        DataPoint: '@UI.DataPoint#SpendTrendAmount' }
+    ],
+    Dimensions: [ period ],
+    DimensionAttributes: [
+      { $Type: 'UI.ChartDimensionAttributeType', Dimension: period, Role: #Category }
+    ]
+  }
+);
 
 annotate PurchaseService.PurchaseOrders with {
   orderNo      @title: 'Order #';

@@ -7,7 +7,7 @@ in manifest.json under:
 
     routing.targets.SupplierWorkbench
        type:     Component
-       name:     sap.fe.core.fpm    <-- the FPM custom-page host
+       name:     sap.fe.core.fpm    (the FPM custom-page host)
        viewName: zrd.fiori.purchaseorders.ext.view.SupplierWorkbench
        contextPath: /Suppliers
 
@@ -33,14 +33,13 @@ layout, standard rendering.
     controllerName="zrd.fiori.purchaseorders.ext.controller.SupplierWorkbench"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns:macros="sap.fe.macros"
-    xmlns:l="sap.ui.layout">
+    xmlns:macros="sap.fe.macros">
 
     <Page
-        id="pageSupplierWorkbench"
+        id="idSupplierWorkbenchPage"
         title="Supplier Workbench"
         showNavButton="true"
-        navButtonPress=".onNavBack">
+        navButtonPress=".onPageNavButtonPress">
 
         <content>
 
@@ -48,29 +47,32 @@ layout, standard rendering.
                  Middle: form + chart, side by side
                  ============================================ -->
             <FlexBox
+                id="idMiddleFlexBox"
                 direction="Row"
                 wrap="Wrap"
                 alignItems="Start"
                 class="sapUiSmallMargin">
 
-                <VBox width="40%" class="sapUiSmallMarginEnd">
+                <VBox id="idSupplierInfoVBox" width="40%" class="sapUiSmallMarginEnd">
                     <Title
+                        id="idSupplierDetailsTitle"
                         text="Supplier Details"
                         level="H3"
                         class="sapUiSmallMarginBottom"/>
                     <macros:Form
-                        id="frmSupplierInfo"
+                        id="idSupplierInfoForm"
                         metaPath="@com.sap.vocabularies.UI.v1.FieldGroup#SupplierInfo"/>
                 </VBox>
 
-                <VBox width="55%">
+                <VBox id="idSpendByCategoryVBox" width="55%">
                     <Title
+                        id="idSpendByCategoryTitle"
                         text="Spend by Category"
                         level="H3"
                         class="sapUiSmallMarginBottom"/>
                     <macros:Chart
-                        id="chSpendByCategory"
-                        metaPath="@com.sap.vocabularies.UI.v1.Chart#SpendByCategory"/>
+                        id="idSpendByCategoryChart"
+                        metaPath="spendByCategory/@com.sap.vocabularies.UI.v1.Chart#SpendByCategory"/>
                 </VBox>
 
             </FlexBox>
@@ -78,13 +80,14 @@ layout, standard rendering.
             <!-- ============================================
                  Bottom: open purchase orders table
                  ============================================ -->
-            <VBox class="sapUiSmallMargin">
+            <VBox id="idOpenPOsVBox" class="sapUiSmallMargin">
                 <Title
+                    id="idOpenPurchaseOrdersTitle"
                     text="Open Purchase Orders"
                     level="H3"
                     class="sapUiSmallMarginBottom"/>
                 <macros:Table
-                    id="tblOpenPOs"
+                    id="idOpenPOsTable"
                     metaPath="purchaseOrders/@com.sap.vocabularies.UI.v1.LineItem#OpenPOs"/>
             </VBox>
 
