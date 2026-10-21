@@ -34,8 +34,8 @@ module.exports = cds.service.impl(async function () {
     if (po.status === 'Reviewed') {
       return req.error(409, `Purchase order ${po.orderNo} is already Reviewed.`);
     }
-    if (po.status === 'Draft') {
-      return req.error(400, `Purchase order ${po.orderNo} is still in Draft. Submit it first.`);
+    if (po.status !== 'Submitted') {
+      return req.error(400, `Purchase order ${po.orderNo} must be Submitted before it can be reviewed.`);
     }
 
     await UPDATE(PurchaseOrders, ID).with({

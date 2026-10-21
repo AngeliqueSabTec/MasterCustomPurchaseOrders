@@ -12,13 +12,17 @@ in manifest.json under:
        contextPath: /Suppliers
 
 Layout:
-  - macros:FilterBar at the top, driven by UI.SelectionFields on
-    Suppliers.
   - Side-by-side: macros:Form (SupplierInfo FieldGroup) +
     macros:Chart (SpendByCategory).
   - Below: macros:Table for open purchase orders, driven by
-    UI.LineItem#OpenPOs on Suppliers (which uses the
-    purchaseOrders association).
+    UI.LineItem#OpenPOs on PurchaseOrders, reached through the
+    Suppliers.purchaseOrders association in the table's metaPath.
+
+Note: there is no macros:FilterBar on this page. The page is already
+scoped to one supplier via navigation (the route binds a single
+Suppliers context), and a FilterBar-connected Table queries its whole
+entity set rather than following that navigation — wiring one up here
+would silently show purchase orders across all suppliers.
 
 The view is bespoke. The controls are all framework-provided. This is
 the highest-leverage extension pattern in the framework: bespoke
@@ -26,6 +30,7 @@ layout, standard rendering.
 ======================================================================
 -->
 <mvc:View
+    controllerName="zrd.fiori.purchaseorders.ext.controller.SupplierWorkbench"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc"
     xmlns:macros="sap.fe.macros"
@@ -34,17 +39,10 @@ layout, standard rendering.
     <Page
         id="pageSupplierWorkbench"
         title="Supplier Workbench"
-        showNavButton="true">
+        showNavButton="true"
+        navButtonPress=".onNavBack">
 
         <content>
-
-            <!-- ============================================
-                 Top: filter bar
-                 ============================================ -->
-            <macros:FilterBar
-                id="fbSuppliers"
-                metaPath="@com.sap.vocabularies.UI.v1.SelectionFields"
-                liveMode="true"/>
 
             <!-- ============================================
                  Middle: form + chart, side by side
@@ -87,7 +85,7 @@ layout, standard rendering.
                     class="sapUiSmallMarginBottom"/>
                 <macros:Table
                     id="tblOpenPOs"
-                    metaPath="@com.sap.vocabularies.UI.v1.LineItem#OpenPOs"/>
+                    metaPath="purchaseOrders/@com.sap.vocabularies.UI.v1.LineItem#OpenPOs"/>
             </VBox>
 
         </content>

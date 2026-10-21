@@ -15,4 +15,5 @@ service PurchaseService @(path: '/purchase') {
   entity Suppliers as projection on my.Suppliers;
   entity Materials as projection on my.Materials;
   entity SupplierSpendByCategory as projection on my.SupplierSpendByCategory;
+  entity SupplierSpendHistory as projection on my.SupplierSpendHistory;
 }

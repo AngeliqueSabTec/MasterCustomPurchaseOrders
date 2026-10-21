@@ -8,17 +8,17 @@
 // Demo 1 — Baseline: HeaderInfo, basic LineItem, FieldGroup,
 //                    SelectionFields, Identification, Facets.
 // Demo 2 — Annotation-only customization: DeliveryDate column,
-//                    Criticality on supplier name, header DataPoint
-//                    visualisation #LineChart.
-// Demo 3 — Custom action: UI.Identification.actions entry for
-//                    MarkReviewed (referenced from manifest).
+//                    Criticality on supplier name, header UI.Chart
+//                    (#Line) trend mini-chart.
+// Demo 3 — Custom action: MarkReviewed is a header action registered
+//                    in manifest.json's content.header.actions.
 // Demo 4 — Custom section: FieldGroup #VendorSummary, DataPoint
 //                    #SpendTrend — consumed by the SpendAnalytics
 //                    fragment.
 // Demo 5 — Custom page (Supplier Workbench): SelectionFields, Chart
-//                    #SpendByCategory, FieldGroup #SupplierInfo,
-//                    LineItem #OpenPOs on Suppliers and related
-//                    entities.
+//                    #SpendByCategory, FieldGroup #SupplierInfo on
+//                    Suppliers; LineItem #OpenPOs on PurchaseOrders,
+//                    reached through the purchaseOrders association.
 // =====================================================================
 
 using PurchaseService from './purchase-service';
@@ -76,17 +76,45 @@ annotate PurchaseService.PurchaseOrders with @(
     ]
   },
 
-  // === Demo 2: DataPoint with #LineChart for the Object Page header ===
-  // === Demo 4: Same DataPoint reused inside the SpendAnalytics fragment ===
-  UI.DataPoint #SpendTrend: {
-    Value         : totalAmount,
-    Title         : 'Spend Trend',
-    Visualization : #LineChart
+  // === Demo 2: UI.Chart (#Line) for the Object Page header mini-chart ===
+  // A UI.DataPoint cannot use Visualization: #LineChart (not a valid
+  // value) — a trend line needs a UI.Chart over a to-many time series.
+  // Measures/Dimensions use the single-hop supplierHistory association
+  // declared directly on PurchaseOrders — not supplier.spendHistory
+  // (two hops), which makes CDS auto-expose a second projection of the
+  // target entity and deploy its CSV data twice.
+  UI.Chart #SpendTrend: {
+    ChartType : #Line,
+    Title     : 'Spend Trend',
+    Measures  : [ supplierHistory.amount ],
+    MeasureAttributes: [
+      { $Type: 'UI.ChartMeasureAttributeType', Measure: supplierHistory.amount, Role: #Axis1 }
+    ],
+    Dimensions: [ supplierHistory.period ],
+    DimensionAttributes: [
+      { $Type: 'UI.ChartDimensionAttributeType', Dimension: supplierHistory.period, Role: #Category }
+    ]
+  },
+
+  // === Demo 4: Same data, distinct qualifier. Reusing #SpendTrend's
+  // metaPath in the SpendAnalytics section as well as the header facet
+  // produces two controls with the same ID on the same page. ===
+  UI.Chart #SpendTrendDetail: {
+    ChartType : #Line,
+    Title     : 'Spend Trend',
+    Measures  : [ supplierHistory.amount ],
+    MeasureAttributes: [
+      { $Type: 'UI.ChartMeasureAttributeType', Measure: supplierHistory.amount, Role: #Axis1 }
+    ],
+    Dimensions: [ supplierHistory.period ],
+    DimensionAttributes: [
+      { $Type: 'UI.ChartDimensionAttributeType', Dimension: supplierHistory.period, Role: #Category }
+    ]
   },
 
   // === Demo 2: HeaderFacets — adds the SpendTrend mini-chart to header ===
   UI.HeaderFacets: [
-    { $Type: 'UI.ReferenceFacet', Target: '@UI.DataPoint#SpendTrend', Label: 'Spend Trend' }
+    { $Type: 'UI.ReferenceFacet', Target: '@UI.Chart#SpendTrend', Label: 'Spend Trend' }
   ],
 
   // === Demo 1: Object Page body facets ===
@@ -104,21 +132,28 @@ annotate PurchaseService.PurchaseOrders with @(
       Target: 'items/@UI.LineItem' }
   ],
 
-  // === Demo 1: Identification (used by the floorplan for header actions) ===
-  // === Demo 3: MarkReviewed action is referenced from manifest.json
-  //            controlConfiguration. The annotation here exists so the
-  //            framework knows the action exists; the press handler is
-  //            wired in the manifest.
+  // === Demo 1: Identification ===
+  // === Demo 3 & 5: Mark as Reviewed / Open Supplier Workbench are
+  //            registered as header actions in manifest.json's
+  //            content.header.actions, not here — an action defined in
+  //            both places renders twice.
   UI.Identification: [
-    { $Type: 'UI.DataField',      Value: orderNo, Label: 'Order #' },
-    { $Type: 'UI.DataFieldForAction',
-      Action: 'PurchaseService.markAsReviewed',
-      Label:  'Mark as Reviewed',
-      Inline: false                                                 }, // DEMO 3
-    { $Type: 'UI.DataFieldForIntentBasedNavigation',                  // DEMO 5
-      SemanticObject: 'Supplier',
-      Action: 'workbench',
-      Label: 'Open Supplier Workbench' }
+    { $Type: 'UI.DataField', Value: orderNo, Label: 'Order #' }
+  ],
+
+  // === Demo 5: LineItem for the Supplier Workbench's "Open Purchase
+  // Orders" table. A table row template needs plain properties of its
+  // own entity — not a to-many association's fields inlined as if they
+  // were scalars (that was the original, invalid version of this
+  // annotation, defined on Suppliers using purchaseOrders.orderNo etc).
+  // The table instead binds through the to-many path itself via
+  // metaPath="purchaseOrders/@UI.LineItem#OpenPOs" in the view. ===
+  UI.LineItem #OpenPOs: [
+    { $Type: 'UI.DataField', Value: orderNo,     Label: 'Order #' },
+    { $Type: 'UI.DataField', Value: orderDate,   Label: 'Order Date' },
+    { $Type: 'UI.DataField', Value: totalAmount, Label: 'Total' },
+    { $Type: 'UI.DataField', Value: status,      Label: 'Status',
+      Criticality: statusCriticality                              }
   ]
 );
 
@@ -153,7 +188,8 @@ annotate PurchaseService.Suppliers with @(
     Description    : { Value: industry }
   },
 
-  // === Demo 5: filter bar on the Supplier Workbench page ===
+  // === Demo 5: kept for Suppliers metadata completeness. Not consumed
+  // by a FilterBar on the Workbench page — see SupplierWorkbench.view.xml. ===
   UI.SelectionFields: [ country, industry, riskRating ],
 
   // === Demo 5: FieldGroup for the Supplier info form ===
@@ -186,16 +222,7 @@ annotate PurchaseService.Suppliers with @(
         Dimension: spendByCategory.category,
         Role: #Category }
     ]
-  },
-
-  // === Demo 5: LineItem for the OpenPOs table on the workbench ===
-  UI.LineItem #OpenPOs: [
-    { $Type: 'UI.DataField', Value: purchaseOrders.orderNo,     Label: 'Order #' },
-    { $Type: 'UI.DataField', Value: purchaseOrders.orderDate,   Label: 'Order Date' },
-    { $Type: 'UI.DataField', Value: purchaseOrders.totalAmount, Label: 'Total' },
-    { $Type: 'UI.DataField', Value: purchaseOrders.status,      Label: 'Status',
-      Criticality: purchaseOrders.statusCriticality                              }
-  ]
+  }
 );
 
 annotate PurchaseService.Suppliers with {
@@ -208,9 +235,17 @@ annotate PurchaseService.Suppliers with {
   spendAmount       @title: 'Total Spend';
 };
 
+// macros:Chart aggregates its measure via OData $apply — the measure
+// property needs to be flagged as an analytical measure, or the chart
+// building block has nothing to group/sum.
 annotate PurchaseService.SupplierSpendByCategory with {
   category @title: 'Category';
-  amount   @title: 'Amount';
+  amount   @title: 'Amount' @Analytics.Measure: true @Aggregation.default: #SUM;
+};
+
+annotate PurchaseService.SupplierSpendHistory with {
+  period @title: 'Period';
+  amount @title: 'Amount' @Analytics.Measure: true @Aggregation.default: #SUM;
 };
 
 annotate PurchaseService.PurchaseOrders with {

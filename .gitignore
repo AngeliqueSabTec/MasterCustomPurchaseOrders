@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# CAP build/deploy artifacts
+gen/
+resources/
+mta_archives/
+.cds-services.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor/OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Env/secrets
+.env
+default-env.json

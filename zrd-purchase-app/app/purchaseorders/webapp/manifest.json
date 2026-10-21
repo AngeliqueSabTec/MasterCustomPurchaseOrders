@@ -81,7 +81,7 @@
           "target": "PurchaseOrdersObjectPage"
         },
         {
-          "pattern": "supplier-workbench/{supplierId}:?query:",
+          "pattern": "Suppliers({key}):?query:",
           "name": "SupplierWorkbench",
           "target": "SupplierWorkbench"
         }
@@ -120,6 +120,24 @@
               "contextPath": "/PurchaseOrders",
               "editableHeaderContent": false,
               "content": {
+                "header": {
+                  "actions": {
+                    "MarkReviewed": {
+                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.extension.onMarkAsReviewed",
+                      "visible": true,
+                      "enabled": "{= %{status} === 'Submitted' }",
+                      "text": "Mark as Reviewed",
+                      "requiresSelection": false
+                    },
+                    "OpenSupplierWorkbench": {
+                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.extension.onOpenSupplierWorkbench",
+                      "visible": true,
+                      "enabled": true,
+                      "text": "Open Supplier Workbench",
+                      "requiresSelection": false
+                    }
+                  }
+                },
                 "body": {
                   "sections": {
                     "SpendAnalytics": {
@@ -129,26 +147,6 @@
                         "placement": "After",
                         "anchor": "GeneralInformationFacet"
                       }
-                    }
-                  }
-                }
-              },
-              "controlConfiguration": {
-                "@com.sap.vocabularies.UI.v1.Identification": {
-                  "actions": {
-                    "MarkReviewed": {
-                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.onMarkAsReviewed",
-                      "visible": true,
-                      "enabled": "{= ${Status} !== 'Reviewed' && ${Status} !== 'Draft' }",
-                      "text": "Mark as Reviewed",
-                      "requiresSelection": false
-                    },
-                    "OpenSupplierWorkbench": {
-                      "press": "zrd.fiori.purchaseorders.ext.controller.ObjectPageExt.onOpenSupplierWorkbench",
-                      "visible": true,
-                      "enabled": true,
-                      "text": "Open Supplier Workbench",
-                      "requiresSelection": false
                     }
                   }
                 }
