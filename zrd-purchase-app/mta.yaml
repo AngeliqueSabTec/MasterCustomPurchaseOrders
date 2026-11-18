@@ -1,0 +1,27 @@
+_schema-version: 3.3.0
+ID: zrd-purchase-app
+description: Mastering Custom SAP Fiori Elements - Purchasing demo (CAP + Fiori Elements V4)
+version: 1.0.0
+modules:
+# Single CAP app: serves the OData service (/purchase, in-memory SQLite with
+# CSV mock data) and the Fiori UI from app/purchaseorders/webapp.
+# No login, no cloud database - same setup as ZUXFioriDemo_CAP.
+- name: zrd-purchase-app-srv
+  type: nodejs
+  path: gen/srv
+  parameters:
+    buildpack: nodejs_buildpack
+    instances: 1
+    memory: 256M
+    disk-quota: 1024M
+  build-parameters:
+    builder: npm-ci
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm ci
+    - npx cds build --production
+    - mkdir -p gen/srv/srv/data gen/srv/app/purchaseorders
+    - cp -r db/data/. gen/srv/srv/data/
+    - cp -r app/purchaseorders/webapp gen/srv/app/purchaseorders/

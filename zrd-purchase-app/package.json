@@ -6,17 +6,22 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@sap/cds": "^9",
-    "express": "^4"
+    "express": "^4",
+    "@cap-js/sqlite": "^2"
   },
   "devDependencies": {
-    "@cap-js/sqlite": "^2",
     "@sap/cds-dk": "^9",
-    "cds-plugin-ui5": "^0.17.0"
+    "cds-plugin-ui5": "^0.17.0",
+    "mbt": "^1.2.49",
+    "rimraf": "^5.0.5"
   },
   "scripts": {
     "start": "cds-serve",
     "watch": "cds watch",
-    "watch-purchaseorders": "cds watch --open zrd.fiori.purchaseorders/index.html?sap-ui-xx-viewCache=false"
+    "watch-purchaseorders": "cds watch --open zrd.fiori.purchaseorders/index.html?sap-ui-xx-viewCache=false",
+    "build": "rimraf resources mta_archives && mbt build --mtar archive",
+    "deploy": "cf deploy mta_archives/archive.mtar --retries 1",
+    "undeploy": "cf undeploy zrd-purchase-app --delete-services --delete-service-keys --delete-service-brokers"
   },
   "workspaces": [
     "app/*"
@@ -31,6 +36,20 @@
         "credentials": {
           "url": ":memory:"
         }
+      },
+      "[production]": {
+        "auth": "dummy",
+        "db": {
+          "kind": "sqlite",
+          "credentials": {
+            "url": ":memory:"
+          }
+        }
+      }
+    },
+    "features": {
+      "[production]": {
+        "in_memory_db": true
       }
     }
   }
